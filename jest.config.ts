@@ -23,6 +23,7 @@ const config: Config = {
         '^@Services/(.*)$': '<rootDir>/src/app/services/$1',
         '^@Ngrx/(.*)$': '<rootDir>/src/app/@ngrx/$1',
         '^@Cache/(.*)$': '<rootDir>/src/app/environment/$1',
+        '^@Components/(.*)$': '<rootDir>/src/app/components/$1',
     },
 };
 
