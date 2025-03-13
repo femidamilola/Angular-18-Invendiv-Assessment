@@ -27,16 +27,13 @@ describe('CartService', () => {
                 }
             ]
         });
-
         cartService = TestBed.inject(CartService);
         store = TestBed.inject(Store);
         cacheService = TestBed.inject(CacheService);
     });
-
     it('should be created', () => {
         expect(cartService).toBeTruthy();
     });
-
     it('should add a product to the cart and update cache', () => {
         jest.spyOn(store, 'dispatch');
         cartService.addProductToCart(mockProduct);
