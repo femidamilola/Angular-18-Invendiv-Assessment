@@ -2,9 +2,11 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { CartState } from '@Ngrx/reducers/cart.reducer';
-import { addToCart, removeFromCart, clearCart } from '@Ngrx/actions/cart.action';
+import { addToCart, removeFromCart, clearCart, updateQuantity } from '@Ngrx/actions/cart.action';
 import { Product } from '@Models/product.model';
 import { CacheService } from '@Services/cache.service';
+import { take } from 'rxjs/operators';
+import { Cart } from '@Models/cart.model';
 
 @Injectable({
   providedIn: 'root',
@@ -26,6 +28,13 @@ export class CartService {
     this.updateCache();
   }
 
+  updateProductQuantity(productId: number, change: number) {
+    this.store.dispatch(updateQuantity({ productId, change }));
+    this.store.select(state => state.cart.items).pipe(take(1)).subscribe(cartItems => {
+      this.cacheService.saveCart(cartItems);
+    });
+  }
+
   clearCart() {
     this.store.dispatch(clearCart());
     this.cacheService.clearCart();
@@ -42,16 +51,20 @@ export class CartService {
     return this.discount$.asObservable();
   }
 
-  /** Sync cart data with cache */
   private updateCache() {
-    this.store.select(state => state.cart.items).subscribe(cartItems => {
-      this.cacheService.saveCart(cartItems);
+    this.store.select(state => state.cart.items).pipe(take(1)).subscribe(cartItems => {
+      this.cacheService.saveCart(cartItems.map(item => ({
+        product: item.product,
+        quantity: item.quantity
+      })));
     });
   }
 
-  /** Load cart from cache on app start */
   private loadCartFromCache() {
-    const cachedCart = this.cacheService.getCart();
-    cachedCart.forEach(item => this.store.dispatch(addToCart({ product: item.product })));
+    const cachedCart: Cart[] = this.cacheService.getCart();
+    cachedCart.forEach(item => {
+      this.store.dispatch(addToCart({ product: item.product })); // Add product
+      this.store.dispatch(updateQuantity({ productId: item.product.id, change: item.quantity - 1 }));
+    });
   }
 }

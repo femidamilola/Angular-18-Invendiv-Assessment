@@ -6,7 +6,6 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { CartState } from '@Ngrx/reducers/cart.reducer';
 import { of, BehaviorSubject } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { removeFromCart } from '@Ngrx/actions/cart.action';
 
 // Mock Data
 const mockCartItems = [
@@ -25,13 +24,13 @@ describe('CartComponent', () => {
             select: jest.fn(),
             dispatch: jest.fn(),
         };
-
         const mockCartService = {
             getDiscount: jest.fn().mockReturnValue(new BehaviorSubject<number>(0).asObservable()),
             applyDiscount: jest.fn(),
             addProductToCart: jest.fn(),
+            removeProductFromCart: jest.fn(),
+            updateProductQuantity: jest.fn(),
         };
-
         await TestBed.configureTestingModule({
             imports: [CommonModule],
             providers: [
@@ -40,16 +39,14 @@ describe('CartComponent', () => {
                 NgbActiveModal,
             ],
         }).compileComponents();
-
         store = TestBed.inject(Store);
         cartService = TestBed.inject(CartService);
-
         jest.spyOn(store, 'select').mockReturnValue(of(mockCartItems));
-
         fixture = TestBed.createComponent(CartComponent);
         component = fixture.componentInstance;
         fixture.detectChanges();
     });
+
 
     it('should create the component', () => {
         expect(component).toBeTruthy();
@@ -71,18 +68,15 @@ describe('CartComponent', () => {
     });
 
     it('should remove an item from the cart', () => {
-        const dispatchSpy = jest.spyOn(store, 'dispatch');
-
+        const removeSpy = jest.spyOn(cartService, 'removeProductFromCart');
         component.removeItem(1);
-        expect(dispatchSpy).toHaveBeenCalledWith(removeFromCart({ productId: 1 }));
+        expect(removeSpy).toHaveBeenCalledWith(1);
     });
 
     it('should apply a discount when a valid code is entered', () => {
         const applyDiscountSpy = jest.spyOn(cartService, 'applyDiscount');
         const mockEvent = { target: { value: 'SAVE10' } } as unknown as Event;
-
         component.applyDiscount(mockEvent);
-
         expect(applyDiscountSpy).toHaveBeenCalledWith('SAVE10');
         expect(component.discountCode).toBe('SAVE10');
     });
@@ -90,7 +84,6 @@ describe('CartComponent', () => {
     it('should update the grand total correctly when discount is applied', (done) => {
         component.discount$.next(10); // Mock discount value
         component.updateGrandTotal();
-
         component.grandTotal$.subscribe(grandTotal => {
             expect(grandTotal).toBe(390); // Subtotal (400) - Discount (10)
             done();
@@ -98,9 +91,8 @@ describe('CartComponent', () => {
     });
 
     it('should update quantity correctly', () => {
-        const addProductSpy = jest.spyOn(cartService, 'addProductToCart');
-
+        const updateSpy = jest.spyOn(cartService, 'updateProductQuantity');
         component.updateQuantity(1, 1);
-        expect(addProductSpy).toHaveBeenCalledWith(mockCartItems[0].product);
+        expect(updateSpy).toHaveBeenCalledWith(1, 1);
     });
 });

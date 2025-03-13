@@ -50,14 +50,11 @@ export class CartComponent {
   }
 
   updateQuantity(productId: number, change: number) {
-    this.store.dispatch(updateQuantity({ productId, change }));
+    this.cartService.updateProductQuantity(productId, change);
   }
 
-
-
-
   removeItem(productId: number) {
-    this.store.dispatch(removeFromCart({ productId }));
+    this.cartService.removeProductFromCart(productId);
   }
 
   applyDiscount(event: Event) {

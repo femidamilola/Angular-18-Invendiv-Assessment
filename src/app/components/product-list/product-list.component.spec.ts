@@ -3,7 +3,6 @@ import { ProductListComponent } from './product-list.component';
 import { CartService } from '@Services/cart.service';
 import { Store, StoreModule } from '@ngrx/store';
 import { cartReducer } from '@Ngrx/reducers/cart.reducer';
-import { BehaviorSubject, of } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { CartComponent } from '@Components/cart/cart.component';
 import { By } from '@angular/platform-browser';
@@ -54,7 +53,6 @@ describe('ProductListComponent', () => {
         const productElements = fixture.debugElement.queryAll(By.css('.animate-underline'));
         expect(productElements.length).toBe(mockProducts.length);
     });
-
 
     it('should filter products correctly', () => {
         const event = { target: { value: 'Nike' } } as unknown as Event;

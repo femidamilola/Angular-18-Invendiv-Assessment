@@ -41,6 +41,7 @@ describe('CacheService', () => {
     const retrievedCart = cacheService.getCart();
     expect(retrievedCart).toEqual([]);
   });
+  
   it('should clear cart data from localStorage', () => {
     cacheService.clearCart();
     expect(localStorage.removeItem).toHaveBeenCalledWith(CART_KEY);
