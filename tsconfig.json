@@ -23,7 +23,8 @@
       "@Models/*": ["src/app/models/*"],
       "@Services/*": ["src/app/services/*"],
       "@Components/*": ["src/app/components/*"],
-      "@Ngrx/*": ["src/app/@ngrx/*"]
+      "@Ngrx/*": ["src/app/@ngrx/*"],
+      "@Cache/*": ["src/app/environment/*"]
     },
     "lib": ["ES2022", "dom"]
   },
