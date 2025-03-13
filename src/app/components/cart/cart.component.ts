@@ -1,8 +1,11 @@
 import { Component } from '@angular/core';
-import { BehaviorSubject, map, Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { Store } from '@ngrx/store';
+import { map } from 'rxjs/operators';
 import { Cart } from '@Models/cart.model';
-import { Product } from '@Models/product.model';
 import { CartService } from '@Services/cart.service';
+import { CartState } from '@Ngrx/reducers/cart.reducer';
+import { removeFromCart } from '@Ngrx/actions/cart.action';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -13,18 +16,15 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./cart.component.scss'],
 })
 export class CartComponent {
-  cart$: BehaviorSubject<Cart[]> = new BehaviorSubject<Cart[]>([
-    { product: { id: 1, name: 'iPhone 14', price: 999, image: 'iphone14.png' }, quantity: 1 },
-    { product: { id: 2, name: 'MacBook Pro', price: 1999, image: 'macbook.png' }, quantity: 2 },
-    { product: { id: 3, name: 'AirPods Pro', price: 249, image: 'airpods.png' }, quantity: 1 }
-  ]);
-
+  cart$: Observable<Cart[]>;
   subtotal$: Observable<number>;
   discount$ = new BehaviorSubject<number>(0);
   grandTotal$: Observable<number>;
   discountCode = '';
 
-  constructor(private cartService: CartService) {
+  constructor(private store: Store<{ cart: CartState }>, private cartService: CartService) {
+    this.cart$ = this.store.select(state => state.cart.items);
+
     this.subtotal$ = this.cart$.pipe(
       map(items => items.reduce((acc, item) => acc + item.quantity * item.product.price, 0))
     );
@@ -40,19 +40,18 @@ export class CartComponent {
   }
 
   updateQuantity(productId: number, change: number) {
-    const updatedCart = this.cart$.getValue().map(item =>
-      item.product.id === productId
-        ? { ...item, quantity: Math.max(1, item.quantity + change) } // Ensure quantity doesn't go below 1
-        : item
-    );
-    this.cart$.next(updatedCart);
-    this.updateGrandTotal();
+    this.store.select(state => state.cart.items).subscribe(cartItems => {
+      const updatedCart = cartItems.map(item =>
+        item.product.id === productId
+          ? { ...item, quantity: Math.max(1, item.quantity + change) } // Prevents negative quantity
+          : item
+      );
+      updatedCart.forEach(item => this.cartService.addProductToCart(item.product)); // Update via store
+    });
   }
 
   removeItem(productId: number) {
-    const updatedCart = this.cart$.getValue().filter(item => item.product.id !== productId);
-    this.cart$.next(updatedCart);
-    this.updateGrandTotal();
+    this.store.dispatch(removeFromCart({ productId }));
   }
 
   applyDiscount(event: Event) {
