@@ -27,7 +27,7 @@ export class ProductListComponent {
     { id: 2, name: 'Nike Air Jordan', price: 220, image: 'nike_air_jordan.jpg' },
     { id: 3, name: 'Adidas Yeezy', price: 140, image: 'adidas_yeezy.jpg' },
     { id: 4, name: 'Naked Wolf', price: 320.50, image: 'naked_wolf.jpg' },
-    { id: 4, name: 'Reebok', price: 320.50, image: 'reebok.jpg' }
+    { id: 5, name: 'Reebok', price: 320.50, image: 'reebok.jpg' }
   ];
 
   private filteredProducts$ = new BehaviorSubject<Product[]>(this.allProducts);

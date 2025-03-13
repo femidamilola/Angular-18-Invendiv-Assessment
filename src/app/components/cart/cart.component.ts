@@ -5,7 +5,7 @@ import { map } from 'rxjs/operators';
 import { Cart } from '@Models/cart.model';
 import { CartService } from '@Services/cart.service';
 import { CartState } from '@Ngrx/reducers/cart.reducer';
-import { removeFromCart } from '@Ngrx/actions/cart.action';
+import { removeFromCart, updateQuantity } from '@Ngrx/actions/cart.action';
 import { CommonModule } from '@angular/common';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -50,23 +50,10 @@ export class CartComponent {
   }
 
   updateQuantity(productId: number, change: number) {
-    this.store.select(state => state.cart.items).pipe(
-      map(cartItems => {
-        return cartItems.map(item =>
-          item.product.id === productId
-            ? { ...item, quantity: Math.max(1, item.quantity + change) } // Ensure min quantity is 1
-            : item
-        );
-      }),
-      take(1) // Prevent multiple subscriptions
-    ).subscribe(updatedCart => {
-      // Find the updated item
-      const updatedItem = updatedCart.find(item => item.product.id === productId);
-      if (updatedItem) {
-        this.cartService.addProductToCart(updatedItem.product); // Dispatch update for only the affected item
-      }
-    });
+    this.store.dispatch(updateQuantity({ productId, change }));
   }
+
+
 
 
   removeItem(productId: number) {
