@@ -1,23 +1,106 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { CartComponent } from './cart.component';
+import { Store } from '@ngrx/store';
+import { CartService } from '@Services/cart.service';
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { CartState } from '@Ngrx/reducers/cart.reducer';
+import { of, BehaviorSubject } from 'rxjs';
+import { CommonModule } from '@angular/common';
+import { removeFromCart } from '@Ngrx/actions/cart.action';
+
+// Mock Data
+const mockCartItems = [
+    { product: { id: 1, name: 'Nike Air Force', price: 100, image: 'nike_air_force.jpg' }, quantity: 2 },
+    { product: { id: 2, name: 'Nike Air Jordan', price: 200, image: 'nike_air_jordan.jpg' }, quantity: 1 },
+];
 
 describe('CartComponent', () => {
-  let component: CartComponent;
-  let fixture: ComponentFixture<CartComponent>;
+    let component: CartComponent;
+    let fixture: ComponentFixture<CartComponent>;
+    let store: Store<{ cart: CartState }>;
+    let cartService: CartService;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [CartComponent]
-    })
-    .compileComponents();
-    
-    fixture = TestBed.createComponent(CartComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+    beforeEach(async () => {
+        const mockStore = {
+            select: jest.fn(),
+            dispatch: jest.fn(),
+        };
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+        const mockCartService = {
+            getDiscount: jest.fn().mockReturnValue(new BehaviorSubject<number>(0).asObservable()),
+            applyDiscount: jest.fn(),
+            addProductToCart: jest.fn(),
+        };
+
+        await TestBed.configureTestingModule({
+            imports: [CommonModule],
+            providers: [
+                { provide: Store, useValue: mockStore },
+                { provide: CartService, useValue: mockCartService },
+                NgbActiveModal,
+            ],
+        }).compileComponents();
+
+        store = TestBed.inject(Store);
+        cartService = TestBed.inject(CartService);
+
+        jest.spyOn(store, 'select').mockReturnValue(of(mockCartItems));
+
+        fixture = TestBed.createComponent(CartComponent);
+        component = fixture.componentInstance;
+        fixture.detectChanges();
+    });
+
+    it('should create the component', () => {
+        expect(component).toBeTruthy();
+    });
+
+    it('should initialize cart$ with mock items', (done) => {
+        component.cart$.subscribe(cart => {
+            expect(cart.length).toBe(2);
+            expect(cart[0].product.name).toBe('Nike Air Force');
+            done();
+        });
+    });
+
+    it('should calculate the correct subtotal', (done) => {
+        component.subtotal$.subscribe(subtotal => {
+            expect(subtotal).toBe(400);
+            done();
+        });
+    });
+
+    it('should remove an item from the cart', () => {
+        const dispatchSpy = jest.spyOn(store, 'dispatch');
+
+        component.removeItem(1);
+        expect(dispatchSpy).toHaveBeenCalledWith(removeFromCart({ productId: 1 }));
+    });
+
+    it('should apply a discount when a valid code is entered', () => {
+        const applyDiscountSpy = jest.spyOn(cartService, 'applyDiscount');
+        const mockEvent = { target: { value: 'SAVE10' } } as unknown as Event;
+
+        component.applyDiscount(mockEvent);
+
+        expect(applyDiscountSpy).toHaveBeenCalledWith('SAVE10');
+        expect(component.discountCode).toBe('SAVE10');
+    });
+
+    it('should update the grand total correctly when discount is applied', (done) => {
+        component.discount$.next(10); // Mock discount value
+        component.updateGrandTotal();
+
+        component.grandTotal$.subscribe(grandTotal => {
+            expect(grandTotal).toBe(390); // Subtotal (400) - Discount (10)
+            done();
+        });
+    });
+
+    it('should update quantity correctly', () => {
+        const addProductSpy = jest.spyOn(cartService, 'addProductToCart');
+
+        component.updateQuantity(1, 1);
+        expect(addProductSpy).toHaveBeenCalledWith(mockCartItems[0].product);
+    });
 });
