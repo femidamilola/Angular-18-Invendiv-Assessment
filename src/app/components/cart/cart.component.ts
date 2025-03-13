@@ -7,13 +7,14 @@ import { CartService } from '@Services/cart.service';
 import { CartState } from '@Ngrx/reducers/cart.reducer';
 import { removeFromCart } from '@Ngrx/actions/cart.action';
 import { CommonModule } from '@angular/common';
-
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 @Component({
   selector: 'app-cart',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './cart.component.html',
   styleUrls: ['./cart.component.scss'],
+  providers: [NgbActiveModal]
 })
 export class CartComponent {
   cart$: Observable<Cart[]>;
@@ -22,7 +23,7 @@ export class CartComponent {
   grandTotal$: Observable<number>;
   discountCode = '';
 
-  constructor(private store: Store<{ cart: CartState }>, private cartService: CartService) {
+  constructor(private store: Store<{ cart: CartState }>, private cartService: CartService, public activeModal: NgbActiveModal) {
     this.cart$ = this.store.select(state => state.cart.items);
 
     this.subtotal$ = this.cart$.pipe(

@@ -8,7 +8,8 @@ import { Observable, map } from 'rxjs';
 import { CartState } from '@Ngrx/reducers/cart.reducer';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faCartShopping } from '@fortawesome/free-solid-svg-icons';
-
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { CartComponent } from '@Components/cart/cart.component';
 @Component({
   selector: 'app-product-list',
   standalone: true,
@@ -32,7 +33,7 @@ export class ProductListComponent {
   private filteredProducts$ = new BehaviorSubject<Product[]>(this.allProducts);
   products$ = this.filteredProducts$.asObservable();
 
-  constructor(private cartService: CartService, private store: Store<{ cart: CartState }>) {
+  constructor(private cartService: CartService, private store: Store<{ cart: CartState }>, private modalService: NgbModal) {
     this.cartCount$ = this.store.select(state => state.cart.items).pipe(
       map(items => items.length)
     );
@@ -53,6 +54,6 @@ export class ProductListComponent {
     this.cartService.addProductToCart(product);
   }
   openCartModal() {
-    this.cartToggle.emit(true);
+    this.modalService.open(CartComponent, { size: 'lg' });
   }
 }
