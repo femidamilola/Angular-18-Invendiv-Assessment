@@ -1,1 +1,63 @@
-<p>product-list works!</p>
+<!-- Header -->
+<header
+  class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top"
+>
+  <div class="container px-3 d-flex align-items-center justify-content-between">
+    <!-- Logo -->
+    <a class="navbar-brand fw-bold fs-4" href="#">RetailCart</a>
+
+    <!-- Search Bar (Hidden on Small Screens) -->
+    <form class="d-none d-md-block">
+      <input
+        type="text"
+        class="form-control rounded-pill"
+        placeholder="Search products..."
+        (input)="filterProducts($event)"
+      />
+    </form>
+
+    <!-- Cart Icon -->
+    <button
+      type="button"
+      class="btn btn-outline-secondary position-relative"
+      (click)="openCartModal()"
+    >
+      <fa-icon [icon]="faCart"></fa-icon>
+
+      <span
+        class="position-absolute top-0 start-100 translate-middle badge bg-danger rounded-circle"
+      >
+        {{ cartCount$ | async }}
+      </span>
+    </button>
+  </div>
+</header>
+
+<!-- Main Container -->
+<section class="container pb-5 mt-md-n2 mb-2 mb-sm-3 mb-md-4 mb-xl-5">
+  <!-- Product Grid -->
+  <div class="row pt- pt-sm-4">
+    @for(product of products$ |async; track $index){
+    <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
+      <div class="animate-underline mt-4">
+        <img
+          [src]="'assets/images/' + product.image"
+          class="product-img hover-effect-target opacity-100 img-fluid rounded-4"
+          alt="Product"
+        />
+        <h3 class="mb-2 mt-3 fw-bold">{{ product.name }}</h3>
+        <div class="h5">{{ product.price | currency : "NGN" }}</div>
+        <div class="d-flex">
+          <button
+            type="button"
+            class="btn btn-dark w-100 rounded-pill py-2 my-3"
+            (click)="addToCart(product)"
+          >
+            Add to cart
+          </button>
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+</section>
